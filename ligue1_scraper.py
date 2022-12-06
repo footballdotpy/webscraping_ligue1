@@ -339,7 +339,8 @@ teams_dict = {"Rc Lens":"Lens",
               "As Monaco":"Monaco",
               "Ac Ajaccio":"Ajaccio",
               "Aj Auxerre":"Auxerre",
-              "Toulouse Fc":"Toulouse"}
+              "Toulouse Fc":"Toulouse",
+              "Fc Lorient":"Lorient"}
 
 for key, value in final_df['HomeTeam'].iteritems():
     final_df['HomeTeam'] = final_df['HomeTeam'].apply(lambda x: teams_dict.get(x,x))
