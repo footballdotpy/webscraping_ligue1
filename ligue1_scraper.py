@@ -14,19 +14,19 @@ warnings.filterwarnings('ignore')
 dataframe = []
 errors = []
 
-season_end = 68909 + 381
 
-for id in range(68909, season_end):
+
+season_end = 69288
+
+for id in range(69238, season_end):
 
     base_url = f'https://www.ligue1.com/match?matchId={id}'
 
     option = Options()
-    option.headless = False
-    driver = webdriver.Chrome("C:/Users/paulc/Documents/Football Data project/DroppingOddsScraper/chromedriver.exe",
+    driver = webdriver.Chrome("###########################,
                               options=option)
     driver.get(base_url)
 
-    driver.maximize_window()
 
     # click the cookie pop up
     WebDriverWait(driver, 10).until(
@@ -368,4 +368,9 @@ for key, value in final_df['AwayTeam'].iteritems():
 
 final_df
 
+errors = pd.DataFrame(errors)
+
+errors.to_csv('errors.csv')
+
 final_df.to_csv('ligue1_2122.csv', index=False)
+
