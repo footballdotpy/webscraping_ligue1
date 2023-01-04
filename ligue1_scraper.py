@@ -308,6 +308,24 @@ final_df['Referee'] = final_df['Referee'].str.title()
 
 final_df = final_df.replace('\%', '', regex=True)
 
+
+# check for erroneous values and input 0, if shots for example is 0 it will return a error.
+
+columns_to_convert = ['Round','Possession_Home', 'Possession_Away','Home_duels_success_rate', 'Away_duels_success_rate','Home_aerials_success_rate',
+                      'Away_aerials_success_rate', 'Home_interceptions', 'Away_interceptions','Home_offsides', 'Away_offsides', 'Home_corners', 'Away_corners',
+                      'Home_passes', 'Away_passes','Home_long_passes', 'Away_long_passes', 'Home_passing_acc', 'Away_passing_acc', 'Home_passing_acc_opp_half',
+                      'Away_passing_acc_opp_half', 'Home_crosses', 'Away_crosses', 'Home_crossing_acc', 'Away_crossing_acc', 'HomeGoals',
+                      'AwayGoals', 'HomeShots', 'AwayShots', 'HomeSOT', 'AwaySOT', 'Home_blocked_shots', 'Away_blocked_shots',
+                      'Home_Shots_OB', 'Away_Shots_OB', 'Home_Shots_IB', 'Away_shots_IB', 'Home_shooting_acc', 'Away_shooting_acc',
+                      'HomeTackles', 'AwayTackles', 'Home_Tackle_success_rate', 'Away_Tackle_success_rate', 'HomeClearances',
+                      'AwayClearances', 'HomeFouls', 'AwayFouls', 'HomeYellows', 'AwayYellows', 'HomeReds', 'AwayReds']
+
+for col in columns_to_convert:
+    final_df[col] = final_df[col].replace("-", np.nan)
+    final_df[col] = final_df[col].astype(float)
+    final_df[col] = final_df[col].fillna(0)
+
+
 # turn columns into float.
 
 final_df[['Round', 'Possession_Home', 'Possession_Away', 'Home_duels_success_rate', 'Away_duels_success_rate',
