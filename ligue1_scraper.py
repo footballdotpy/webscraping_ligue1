@@ -29,6 +29,7 @@ ids = list(ids)
 
 print(ids)
 
+
 for match_id in ids:
 
     base_url = f'https://www.ligue1.com/match?matchId={match_id}'
