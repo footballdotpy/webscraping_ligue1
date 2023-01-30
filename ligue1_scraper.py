@@ -1,3 +1,6 @@
+
+ import requests
+from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
@@ -7,6 +10,7 @@ from selenium.webdriver.common.by import By
 from time import sleep, time
 import pandas as pd
 import warnings
+import numpy as np
 
 warnings.filterwarnings('ignore')
 
@@ -14,22 +18,28 @@ warnings.filterwarnings('ignore')
 dataframe = []
 errors = []
 
+url = "https://www.ligue1.com/fixtures-results"
 
+response = requests.get(url)
+soup = BeautifulSoup(response.text, "html.parser")
 
-season_end = 69288
+ids = [tag["id"] for tag in soup.find_all("div", class_='Calendar-clubResult result', id=True)]
 
-for id in range(69238, season_end):
+ids = list(ids)
 
-    base_url = f'https://www.ligue1.com/match?matchId={id}'
+print(ids)
+
+for match_id in ids:
+
+    base_url = f'https://www.ligue1.com/match?matchId={match_id}'
 
     option = Options()
-    driver = webdriver.Chrome("###########################,
+    driver = webdriver.Chrome("############/chromedriver.exe",
                               options=option)
     driver.get(base_url)
 
-
     # click the cookie pop up
-    WebDriverWait(driver, 10).until(
+    WebDriverWait(driver, 15).until(
         EC.element_to_be_clickable((By.XPATH, "/html/body/div/div/div/div/div/div/div[3]/button[2]/span"))).click()
 
     # navigate to the stats - general tab.
@@ -93,7 +103,7 @@ for id in range(69238, season_end):
         sleep(1)
         # move to distribution tab.
 
-        element = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[text()='Distribution']")))
+        element = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, "//a[text()='Distribution']")))
         actions = ActionChains(driver)
         actions.move_to_element(element).click().perform()
 
@@ -258,11 +268,11 @@ for id in range(69238, season_end):
                         home_fouls, away_fouls, home_yellows, away_yellows, home_reds, away_reds, referee]
 
         dataframe.append(scraped_data)
-        print("Scraped the match:", id, 'Successfully')
+        print("Scraped the match:", match_id, 'Successfully')
 
     except:
         driver.quit()
-        errors.append(id)
+        errors.append(match_id)
         continue
 
     driver.quit()
@@ -304,27 +314,39 @@ final_df['HomeTeam'] = final_df['HomeTeam'].str.title()
 final_df['AwayTeam'] = final_df['AwayTeam'].str.title()
 final_df['Referee'] = final_df['Referee'].str.title()
 
+# Add total goals and cards
+
+final_df['TotalCards'] = final_df['HomeYellows'] + final_df['AwayYellows'] + final_df['HomeReds'] + final_df['AwayReds']
+final_df['TotalGoals'] = final_df['HomeGoals'] + final_df['AwayGoals']
+final_df['TotalCorners'] = final_df['HomeGoals'] + final_df['AwayGoals']
+
 # remove % sign
 
 final_df = final_df.replace('\%', '', regex=True)
 
+# check for erroneous values
 
-# check for erroneous values and input 0, if shots for example is 0 it will return a error.
-
-columns_to_convert = ['Round','Possession_Home', 'Possession_Away','Home_duels_success_rate', 'Away_duels_success_rate','Home_aerials_success_rate',
-                      'Away_aerials_success_rate', 'Home_interceptions', 'Away_interceptions','Home_offsides', 'Away_offsides', 'Home_corners', 'Away_corners',
-                      'Home_passes', 'Away_passes','Home_long_passes', 'Away_long_passes', 'Home_passing_acc', 'Away_passing_acc', 'Home_passing_acc_opp_half',
-                      'Away_passing_acc_opp_half', 'Home_crosses', 'Away_crosses', 'Home_crossing_acc', 'Away_crossing_acc', 'HomeGoals',
-                      'AwayGoals', 'HomeShots', 'AwayShots', 'HomeSOT', 'AwaySOT', 'Home_blocked_shots', 'Away_blocked_shots',
-                      'Home_Shots_OB', 'Away_Shots_OB', 'Home_Shots_IB', 'Away_shots_IB', 'Home_shooting_acc', 'Away_shooting_acc',
-                      'HomeTackles', 'AwayTackles', 'Home_Tackle_success_rate', 'Away_Tackle_success_rate', 'HomeClearances',
-                      'AwayClearances', 'HomeFouls', 'AwayFouls', 'HomeYellows', 'AwayYellows', 'HomeReds', 'AwayReds']
+columns_to_convert = ['Round', 'Possession_Home', 'Possession_Away', 'Home_duels_success_rate',
+                      'Away_duels_success_rate', 'Home_aerials_success_rate',
+                      'Away_aerials_success_rate', 'Home_interceptions', 'Away_interceptions', 'Home_offsides',
+                      'Away_offsides', 'Home_corners', 'Away_corners',
+                      'Home_passes', 'Away_passes', 'Home_long_passes', 'Away_long_passes', 'Home_passing_acc',
+                      'Away_passing_acc', 'Home_passing_acc_opp_half',
+                      'Away_passing_acc_opp_half', 'Home_crosses', 'Away_crosses', 'Home_crossing_acc',
+                      'Away_crossing_acc', 'HomeGoals',
+                      'AwayGoals', 'HomeShots', 'AwayShots', 'HomeSOT', 'AwaySOT', 'Home_blocked_shots',
+                      'Away_blocked_shots',
+                      'Home_Shots_OB', 'Away_Shots_OB', 'Home_Shots_IB', 'Away_shots_IB', 'Home_shooting_acc',
+                      'Away_shooting_acc',
+                      'HomeTackles', 'AwayTackles', 'Home_Tackle_success_rate', 'Away_Tackle_success_rate',
+                      'HomeClearances',
+                      'AwayClearances', 'HomeFouls', 'AwayFouls', 'HomeYellows', 'AwayYellows', 'HomeReds', 'AwayReds',
+                      'TotalCards', 'TotalGoals', 'TotalCorners']
 
 for col in columns_to_convert:
     final_df[col] = final_df[col].replace("-", np.nan)
     final_df[col] = final_df[col].astype(float)
     final_df[col] = final_df[col].fillna(0)
-
 
 # turn columns into float.
 
@@ -338,7 +360,7 @@ final_df[['Round', 'Possession_Home', 'Possession_Away', 'Home_duels_success_rat
           'Away_shots_IB', 'Home_shooting_acc', 'Away_shooting_acc', 'HomeTackles', 'AwayTackles',
           'Home_Tackle_success_rate', 'Away_Tackle_success_rate',
           'HomeClearances', 'AwayClearances', 'HomeFouls', 'AwayFouls', 'HomeYellows', 'AwayYellows', 'HomeReds',
-          'AwayReds']] = final_df[
+          'AwayReds', 'TotalCards', 'TotalGoals', 'TotalCorners']] = final_df[
     ['Round', 'Possession_Home', 'Possession_Away', 'Home_duels_success_rate', 'Away_duels_success_rate',
      'Home_aerials_success_rate', 'Away_aerials_success_rate', 'Home_interceptions', 'Away_interceptions',
      'Home_offsides', 'Away_offsides', 'Home_corners', 'Away_corners', 'Home_passes', 'Away_passes', 'Home_long_passes',
@@ -347,7 +369,8 @@ final_df[['Round', 'Possession_Home', 'Possession_Away', 'Home_duels_success_rat
      'AwayGoals', 'HomeShots', 'AwayShots', 'HomeSOT', 'AwaySOT', 'Home_blocked_shots', 'Away_blocked_shots',
      'Home_Shots_OB', 'Away_Shots_OB', 'Home_Shots_IB', 'Away_shots_IB', 'Home_shooting_acc', 'Away_shooting_acc',
      'HomeTackles', 'AwayTackles', 'Home_Tackle_success_rate', 'Away_Tackle_success_rate', 'HomeClearances',
-     'AwayClearances', 'HomeFouls', 'AwayFouls', 'HomeYellows', 'AwayYellows', 'HomeReds', 'AwayReds']].astype(float)
+     'AwayClearances', 'HomeFouls', 'AwayFouls', 'HomeYellows', 'AwayYellows', 'HomeReds', 'AwayReds', 'TotalCards',
+     'TotalGoals', 'TotalCorners']].astype(float)
 
 # reformat % columns by dividing by 100.
 
@@ -384,11 +407,17 @@ for key, value in final_df['HomeTeam'].iteritems():
 for key, value in final_df['AwayTeam'].iteritems():
     final_df['AwayTeam'] = final_df['AwayTeam'].apply(lambda x: teams_dict.get(x, x))
 
-final_df
-
 errors = pd.DataFrame(errors)
 
-errors.to_csv('errors.csv')
+errors.to_csv('############/Ligue1/datasets/errors.csv')
 
-final_df.to_csv('ligue1_2122.csv', index=False)
+# read in existing dataframe and append
+
+existing_df = pd.read_csv('##########/Ligue1/datasets/ligue1_2223.csv')
+
+# Append df2 to df1
+new_df = pd.concat([existing_df, final_df], axis=0)
+
+new_df.to_csv('###########/Ligue1/datasets/ligue1_2223.csv', index=False)
+
 
