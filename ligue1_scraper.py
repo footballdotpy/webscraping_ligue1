@@ -1,4 +1,3 @@
-
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -29,13 +28,12 @@ ids = list(ids)
 
 print(ids)
 
-
 for match_id in ids:
 
     base_url = f'https://www.ligue1.com/match?matchId={match_id}'
 
     option = Options()
-    driver = webdriver.Chrome("############/chromedriver.exe",
+    driver = webdriver.Chrome("C:/Users/paulc/Documents/Football Data project/DroppingOddsScraper/chromedriver.exe",
                               options=option)
     driver.get(base_url)
 
@@ -317,9 +315,9 @@ final_df['Referee'] = final_df['Referee'].str.title()
 
 # Add total goals and cards
 
-final_df['TotalCards'] = final_df['HomeYellows'] + final_df['AwayYellows'] + final_df['HomeReds'] + final_df['AwayReds']
-final_df['TotalGoals'] = final_df['HomeGoals'] + final_df['AwayGoals']
-final_df['TotalCorners'] = final_df['HomeGoals'] + final_df['AwayGoals']
+final_df['TotalCards'] = final_df[['HomeYellows','AwayYellows','HomeReds','AwayReds']].sum(axis=1)
+final_df['TotalGoals'] = final_df[['HomeGoals','AwayGoals']].sum(axis=1)
+final_df['TotalCorners'] = final_df[['Home_corners','Away_corners']].sum(axis=1)
 
 # remove % sign
 
@@ -410,15 +408,13 @@ for key, value in final_df['AwayTeam'].iteritems():
 
 errors = pd.DataFrame(errors)
 
-errors.to_csv('############/Ligue1/datasets/errors.csv')
+errors.to_csv('C:/Users/paulc/Documents/Ligue1/datasets/errors.csv')
 
 # read in existing dataframe and append
 
-existing_df = pd.read_csv('##########/Ligue1/datasets/ligue1_2223.csv')
+existing_df = pd.read_csv('C:/Users/paulc/Documents/Ligue1/datasets/ligue1_2223.csv')
 
 # Append df2 to df1
 new_df = pd.concat([existing_df, final_df], axis=0)
 
-new_df.to_csv('###########/Ligue1/datasets/ligue1_2223.csv', index=False)
-
-
+new_df.to_csv('C:/Users/paulc/Documents/Ligue1/datasets/ligue1_2223.csv', index=False)
